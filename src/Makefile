@@ -1,4 +1,4 @@
-CXXFLAGS = -g -ggdb -DCL_TARGET_OPENCL_VERSION=220
+CXXFLAGS = -std=c++20 -g -ggdb -DCL_TARGET_OPENCL_VERSION=220
 LDFLAGS  = -lOpenCL
 CXXFILES = $(wildcard *.cc)
 HEADERS  = $(wildcard *.h)
@@ -15,6 +15,9 @@ main:	$(OBJECTS)
 clean:
 	rm -rf main *~(N) $(OBJECTS)
 
-test:
+test:	test-gpu
 	echo CXXFILES=$(CXXFILES)
 	echo OBJECTS=$(OBJECTS)
+
+test-gpu:
+	@if ! yes -- -1 | python /home/presto/git/oclInspector/inspector.py | grep -q NVIDIA; then echo NO GPU FOUND; exit 1; fi

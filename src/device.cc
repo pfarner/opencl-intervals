@@ -2,8 +2,12 @@
 #include <cassert>
 #include <string>
 #include <cstdio>
+#include <ranges>
+#include <typeinfo>
 
 static const int max = 16;
+
+static const std::string GPU_TYPE("GPU");
 
 vector<Device> Device::devices;
 
@@ -38,26 +42,26 @@ static std::string readType(const cl_device_id deviceID) {
 }
 
 Device::Device(const Platform& platform, const cl_device_id did)
- :deviceID(did),
-  type(readType(did)),
-  name(readString(CL_DEVICE_NAME, did)),
-  vendor(readString(CL_DEVICE_VENDOR, did)),
-  deviceVersion(readString(CL_DEVICE_VERSION, did)),
-  driverVersion(readString(CL_DRIVER_VERSION, did)),
-  maxComputeUnits(readUInt(CL_DEVICE_MAX_COMPUTE_UNITS, did)),
-  maxClockFrequency(readUInt(CL_DEVICE_MAX_CLOCK_FREQUENCY, did)),
-  globalMemorySize(readULong(CL_DEVICE_GLOBAL_MEM_SIZE, did)) { };
+  :deviceID(did),
+   type(readType(did)),
+   name(readString(CL_DEVICE_NAME, did)),
+   vendor(readString(CL_DEVICE_VENDOR, did)),
+   deviceVersion(readString(CL_DEVICE_VERSION, did)),
+   driverVersion(readString(CL_DRIVER_VERSION, did)),
+   maxComputeUnits(readUInt(CL_DEVICE_MAX_COMPUTE_UNITS, did)),
+   maxClockFrequency(readUInt(CL_DEVICE_MAX_CLOCK_FREQUENCY, did)),
+   globalMemorySize(readULong(CL_DEVICE_GLOBAL_MEM_SIZE, did)) { };
 
 Device::Device(const Device& other)
- :deviceID(other.deviceID),
-  type(other.type),
-  name(other.name),
-  vendor(other.vendor),
-  deviceVersion(other.deviceVersion),
-  driverVersion(other.driverVersion),
-  maxComputeUnits(other.maxComputeUnits),
-  maxClockFrequency(other.maxClockFrequency),
-  globalMemorySize(other.globalMemorySize) { };
+  :deviceID(other.deviceID),
+   type(other.type),
+   name(other.name),
+   vendor(other.vendor),
+   deviceVersion(other.deviceVersion),
+   driverVersion(other.driverVersion),
+   maxComputeUnits(other.maxComputeUnits),
+   maxClockFrequency(other.maxClockFrequency),
+   globalMemorySize(other.globalMemorySize) { };
 
 Device& Device::operator=(const Device& other) {
   if (this != &other) {
@@ -66,6 +70,12 @@ Device& Device::operator=(const Device& other) {
   return *this;
 };
 
+bool Device::speedOrdering(const Device& a, const Device& b) {
+  const cl_ulong as = a.maxComputeUnits*(cl_ulong)a.maxClockFrequency;
+  const cl_ulong bs = b.maxComputeUnits*(cl_ulong)b.maxClockFrequency;
+  return as < bs;
+}
+
 std::vector<Device> Device::get() {
   if (devices.size() == 0) {
     vector<Device> d;
@@ -73,14 +83,14 @@ std::vector<Device> Device::get() {
       cl_device_id deviceIDs[max];
       cl_uint      ret_num_devices;
       switch (clGetDeviceIDs(platform.platformID, CL_DEVICE_TYPE_ALL, max, deviceIDs, &ret_num_devices)) {
-        case CL_SUCCESS: {
-          for (cl_uint j=0; j<ret_num_devices; ++j) {
-            d.emplace_back(Device(platform, deviceIDs[j]));
-          }
-          break;
-        }
-        case CL_DEVICE_NOT_FOUND: break;
-        default: throw "Unable to scan devices";
+      case CL_SUCCESS: {
+	for (cl_uint j=0; j<ret_num_devices; ++j) {
+	  d.emplace_back(Device(platform, deviceIDs[j]));
+	}
+	break;
+      }
+      case CL_DEVICE_NOT_FOUND: break;
+      default: throw "Unable to scan devices";
       }
     }
     devices = d;
@@ -88,14 +98,33 @@ std::vector<Device> Device::get() {
   return devices;
 }
 
+static void print(auto const& seq) {
+  for (auto const& elem : seq) {
+    std::cout << elem << ' ';
+  }   
+  std::cout << '\n';
+}
+
+bool Device::isGPU() const {
+  return type==GPU_TYPE;
+}
+
+Device Device::getGPU() {
+  const std::vector<Device> allDevices(get());
+  auto gpus(allDevices | std::views::filter([](Device d) { return d.isGPU(); }));
+  auto fastest(std::minmax_element(gpus.begin(), gpus.end(), Device::speedOrdering).second);
+  if (fastest == gpus.end()) throw "No GPU found";
+  return *fastest;
+}
+
 std::ostream& operator<<(std::ostream& os, const Device& device) {
   return os
-      << "type=" << device.type
-      << ", device=" << device.name
-      << ", vendor=" << device.vendor
-      << ", deviceVersion=" << device.deviceVersion
-      << ", driverVersion=" << device.driverVersion
-      << ", maxComputeUnits=" << device.maxComputeUnits
-      << ", maxClockFrequency=" << device.maxClockFrequency
-      << ", globalMemorySize=" << device.globalMemorySize;
+    << "type=" << device.type
+    << ", device=" << device.name
+    << ", vendor=" << device.vendor
+    << ", deviceVersion=" << device.deviceVersion
+    << ", driverVersion=" << device.driverVersion
+    << ", maxComputeUnits=" << device.maxComputeUnits
+    << ", maxClockFrequency=" << device.maxClockFrequency
+    << ", globalMemorySize=" << device.globalMemorySize;
 }

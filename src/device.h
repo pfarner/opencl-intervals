@@ -15,7 +15,11 @@ class Device {
   cl_uint      maxComputeUnits, maxClockFrequency;
   cl_ulong     globalMemorySize;
 
+  bool isGPU() const;
+
   static vector<Device> get();
+  static Device         getGPU();
+  static bool           speedOrdering(const Device& a, const Device& b);
 
   friend std::ostream& operator<<(std::ostream& os, const Device& platform);
 };
