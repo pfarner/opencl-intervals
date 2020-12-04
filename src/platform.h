@@ -5,23 +5,22 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include "ptr.h"
 
 using std::vector;
 using std::iostream;
 
-class Platform {
-  static vector<Platform> platforms;
+class Platform : public Pointable<Platform> {
+  static vector<ptr<Platform>> platforms;
  public:
   Platform(const cl_platform_id platformID);
-  Platform(const Platform& platform);
-  Platform& operator=(const Platform& other);
 
   cl_platform_id platformID;
   std::string    name;
 
-  static vector<Platform> get();
+  static vector<ptr<Platform>> get();
 
-  friend std::ostream& operator<<(std::ostream& os, const Platform& platform);
+  friend std::ostream& operator<<(std::ostream& os, ptr<Platform> platform);
 };
 
 #endif // _platform_h_

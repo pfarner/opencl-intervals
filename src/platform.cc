@@ -4,7 +4,7 @@
 
 static const int max = 16;
 
-vector<Platform> Platform::platforms;
+vector<ptr<Platform>> Platform::platforms;
 
 static std::string readName(const cl_platform_id pid) {
   size_t size;
@@ -19,24 +19,15 @@ static std::string readName(const cl_platform_id pid) {
 Platform::Platform(const cl_platform_id pid)
  :platformID(pid), name(readName(pid)) { };
 
-Platform::Platform(const Platform& other)
- :platformID(other.platformID), name(other.name) { };
-
-Platform& Platform::operator=(const Platform& other) {
-  if (this != &other) {
-    this->platformID = other.platformID;
-  }
-  return *this;
-};
-
-std::vector<Platform> Platform::get() {
+std::vector<ptr<Platform>> Platform::get() {
   if (platforms.size() == 0) {
     cl_platform_id platformIDs[max];
     cl_uint ret_num_platforms;
     assert(CL_SUCCESS == clGetPlatformIDs(max, platformIDs, &ret_num_platforms));
-    vector<Platform> p;
+    vector<ptr<Platform>> p;
     for (cl_uint i=0; i<ret_num_platforms; ++i) {
-      p.emplace_back(Platform(platformIDs[i]));
+      Platform* platform = new Platform(platformIDs[i]);
+      p.emplace_back(platform->bake());
     }
     platforms = p;
   }

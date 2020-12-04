@@ -1,58 +1,68 @@
 #include <cassert>
 #include "context.h"
 
-static cl_context createContext(const Device& device) {
+static cl_context createContext(ptr<Device> device) {
   cl_int ret=CL_SUCCESS;
-  const cl_context context = clCreateContext(NULL, 1, &device.deviceID, NULL, NULL, &ret);
+  const cl_context context = clCreateContext(NULL, 1, &device->deviceID, NULL, NULL, &ret);
   assert(CL_SUCCESS == ret);
   return context;
 }
 
-Context::Context(const Device& device)
- :device(device), context(createContext(device)) { }
-
-Context::CommandQueue Context::createCommandQueue() const {
-  return CommandQueue(*this);
+Context::Context(ptr<Device> device)
+ :device(device), context(createContext(device)) {
+  assert(device->ready());
 }
 
-Context::MemoryBuffer Context::createMemoryBuffer(cl_mem_flags flags, long count, size_t size) const {
-  return MemoryBuffer(*this, flags, count, size);
-}
-
-Context::Program Context::createProgram(std::string kernel) const {
-  return Program(*this, kernel);
-}
-
-void Context::release() const {
+Context::~Context() {
   assert(CL_SUCCESS == clReleaseContext(context));
 }
 
+ptr<Context::CommandQueue> Context::createCommandQueue() const {
+  return ptr<Context::CommandQueue>(new CommandQueue(ref()));
+}
+
+ptr<Context::MemoryBuffer> Context::createMemoryBuffer(cl_mem_flags flags, long count, size_t size) const {
+  MemoryBuffer* mb = new MemoryBuffer(ref(), flags, count, size);
+  return mb->bake();
+}
+
+ptr<Context::Program> Context::createProgram(std::string kernel) const {
+  Program* program = new Program(ref(), kernel);
+  return program->bake();
+}
 
 
-static cl_command_queue createCQ(const cl_context& context, const Device& device) {
+
+static cl_command_queue createCQ(const cl_context& context, ptr<Device> device) {
   cl_int ret=CL_SUCCESS;
-  cl_command_queue queue = clCreateCommandQueueWithProperties(context, device.deviceID, NULL, &ret);
+  cl_command_queue queue = clCreateCommandQueueWithProperties(context, device->deviceID, NULL, &ret);
   assert(CL_SUCCESS == ret);
   return queue;
 }
 
-Context::CommandQueue::CommandQueue(const Context& context)
- :queue(createCQ(context.context, context.device)) { }
+Context::CommandQueue::CommandQueue(ptr<Context> context)
+ :queue(createCQ(context->context, context->device)) { }
 
-void Context::CommandQueue::writeBuffer(const MemoryBuffer& buffer, const void *source) const {
-  writeBuffer(buffer, 0, buffer.length, source);
+Context::CommandQueue::~CommandQueue() {
+  flush();
+  finish();
+  assert(CL_SUCCESS == clReleaseCommandQueue(queue));
 }
 
-void Context::CommandQueue::writeBuffer(const MemoryBuffer& buffer, size_t offset, size_t length, const void *source) const {
-  assert(CL_SUCCESS == clEnqueueWriteBuffer(queue, buffer.buffer, CL_TRUE, offset, length, source, 0, NULL, NULL));
+void Context::CommandQueue::writeBuffer(ptr<MemoryBuffer> buffer, const void *source) const {
+  writeBuffer(buffer, 0, buffer->length, source);
 }
 
-void Context::CommandQueue::readBuffer(const MemoryBuffer& buffer, void *dest) const {
-  readBuffer(buffer, 0, buffer.length, dest);
+void Context::CommandQueue::writeBuffer(ptr<MemoryBuffer> buffer, size_t offset, size_t length, const void *source) const {
+  assert(CL_SUCCESS == clEnqueueWriteBuffer(queue, buffer->buffer, CL_TRUE, offset, length, source, 0, NULL, NULL));
 }
 
-void Context::CommandQueue::readBuffer(const MemoryBuffer& buffer, size_t offset, size_t length, void *dest) const {
-  assert(CL_SUCCESS == clEnqueueReadBuffer(queue, buffer.buffer, CL_TRUE, offset, length, dest, 0, NULL, NULL));
+void Context::CommandQueue::readBuffer(ptr<MemoryBuffer> buffer, void *dest) const {
+  readBuffer(buffer, 0, buffer->length, dest);
+}
+
+void Context::CommandQueue::readBuffer(ptr<MemoryBuffer> buffer, size_t offset, size_t length, void *dest) const {
+  assert(CL_SUCCESS == clEnqueueReadBuffer(queue, buffer->buffer, CL_TRUE, offset, length, dest, 0, NULL, NULL));
 }
 
 void Context::CommandQueue::flush() const {
@@ -61,10 +71,6 @@ void Context::CommandQueue::flush() const {
 
 void Context::CommandQueue::finish() const {
   assert(CL_SUCCESS == clFinish(queue));
-}
-
-void Context::CommandQueue::release() const {
-  assert(CL_SUCCESS == clReleaseCommandQueue(queue));
 }
 
 
@@ -77,11 +83,11 @@ static cl_mem createMB(const cl_context& context, cl_mem_flags flags, size_t buf
   return buffer;
 }
 
-Context::MemoryBuffer::MemoryBuffer(const Context& context, const cl_mem_flags flags, long count, size_t size)
-  :buffer(createMB(context.context, flags, count*size, NULL)), length(count*size) { }
+Context::MemoryBuffer::MemoryBuffer(ptr<Context> context, const cl_mem_flags flags, long count, size_t size)
+  :buffer(createMB(context->context, flags, count*size, NULL)), length(count*size) { }
 
-void Context::MemoryBuffer::release() const {
-  clReleaseMemObject(buffer);
+Context::MemoryBuffer::~MemoryBuffer() {
+  assert(CL_SUCCESS == clReleaseMemObject(buffer));
 }
 
 
@@ -96,18 +102,19 @@ static cl_program createProg(const cl_context& context, std::string kernel) {
   return program;
 }
 
-Context::Program::Program(const Context& context, std::string kernel)
- :device(context.device), program(createProg(context.context, kernel)) {
+Context::Program::Program(ptr<Context> context, std::string kernel)
+ :device(context->device), program(createProg(context->context, kernel)) {
   // FIXME: no support for build options
-  assert(CL_SUCCESS == clBuildProgram(program, 1, &device.deviceID, NULL, NULL, NULL));
+  assert(CL_SUCCESS == clBuildProgram(program, 1, &device->deviceID, NULL, NULL, NULL));
 }
 
-Context::Kernel Context::Program::createKernel(std::string kernel) const {
-  return Kernel(*this, kernel);
-}
-
-void Context::Program::release() const {
+Context::Program::~Program() {
   assert(CL_SUCCESS == clReleaseProgram(program));
+}
+
+ptr<Context::Kernel> Context::Program::createKernel(std::string kernel) const {
+  Kernel* k = new Kernel(ref(), kernel);
+  return k->bake();
 }
 
 
@@ -119,18 +126,18 @@ static cl_kernel createKern(const cl_program& program, std::string endpoint) {
   return kernel;
 }
 
-Context::Kernel::Kernel(const Context::Program& program, std::string endpoint)
-  :kernel(createKern(program.program, endpoint)) { }
+Context::Kernel::Kernel(ptr<Context::Program> program, std::string endpoint)
+  :kernel(createKern(program->program, endpoint)) { }
+
+Context::Kernel::~Kernel() {
+  assert(CL_SUCCESS == clReleaseKernel(kernel));
+}
 
 void Context::Kernel::setArg(cl_uint index, size_t size, const void *value) const {
   assert(CL_SUCCESS == clSetKernelArg(kernel, index, size, value));
 }
 
-void Context::Kernel::executeNDRange(const Context::CommandQueue& queue, cl_ulong count, cl_ulong batch) const {
-  assert(CL_SUCCESS == clEnqueueNDRangeKernel(queue.queue, kernel, 1, NULL, 
+void Context::Kernel::executeNDRange(ptr<Context::CommandQueue> queue, cl_ulong count, cl_ulong batch) const {
+  assert(CL_SUCCESS == clEnqueueNDRangeKernel(queue->queue, kernel, 1, NULL, 
 					      &count, &batch, 0, NULL, NULL));
-}
-
-void Context::Kernel::release() const {
-  assert(CL_SUCCESS == clReleaseKernel(kernel));
 }

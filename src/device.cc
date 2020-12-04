@@ -1,4 +1,4 @@
-#include "device.h"
+#include "context.h"
 #include <cassert>
 #include <string>
 #include <cstdio>
@@ -9,7 +9,7 @@ static const int max = 16;
 
 static const std::string GPU_TYPE("GPU");
 
-vector<Device> Device::devices;
+vector<ptr<Device>> Device::devices;
 
 static std::string readString(cl_device_info infoType, const cl_device_id deviceID) {
   size_t size;
@@ -41,7 +41,7 @@ static std::string readType(const cl_device_id deviceID) {
   return concat.empty() ? "NONE" : std::string(concat.c_str()+1);
 }
 
-Device::Device(const Platform& platform, const cl_device_id did)
+Device::Device(ptr<Platform> platform, const cl_device_id did)
   :deviceID(did),
    type(readType(did)),
    name(readString(CL_DEVICE_NAME, did)),
@@ -52,40 +52,23 @@ Device::Device(const Platform& platform, const cl_device_id did)
    maxClockFrequency(readUInt(CL_DEVICE_MAX_CLOCK_FREQUENCY, did)),
    globalMemorySize(readULong(CL_DEVICE_GLOBAL_MEM_SIZE, did)) { };
 
-Device::Device(const Device& other)
-  :deviceID(other.deviceID),
-   type(other.type),
-   name(other.name),
-   vendor(other.vendor),
-   deviceVersion(other.deviceVersion),
-   driverVersion(other.driverVersion),
-   maxComputeUnits(other.maxComputeUnits),
-   maxClockFrequency(other.maxClockFrequency),
-   globalMemorySize(other.globalMemorySize) { };
-
-Device& Device::operator=(const Device& other) {
-  if (this != &other) {
-    this->deviceID = other.deviceID;
-  }
-  return *this;
-};
-
-bool Device::speedOrdering(const Device& a, const Device& b) {
-  const cl_ulong as = a.maxComputeUnits*(cl_ulong)a.maxClockFrequency;
-  const cl_ulong bs = b.maxComputeUnits*(cl_ulong)b.maxClockFrequency;
+bool Device::speedOrdering(ptr<Device> a, ptr<Device> b) {
+  const cl_ulong as = a->maxComputeUnits*(cl_ulong)a->maxClockFrequency;
+  const cl_ulong bs = b->maxComputeUnits*(cl_ulong)b->maxClockFrequency;
   return as < bs;
 }
 
-std::vector<Device> Device::get() {
+std::vector<ptr<Device>> Device::get() {
   if (devices.size() == 0) {
-    vector<Device> d;
-    for (const Platform& platform : Platform::get()) {
+    vector<ptr<Device>> d;
+    for (ptr<Platform> platform : Platform::get()) {
       cl_device_id deviceIDs[max];
       cl_uint      ret_num_devices;
-      switch (clGetDeviceIDs(platform.platformID, CL_DEVICE_TYPE_ALL, max, deviceIDs, &ret_num_devices)) {
+      switch (clGetDeviceIDs(platform->platformID, CL_DEVICE_TYPE_ALL, max, deviceIDs, &ret_num_devices)) {
       case CL_SUCCESS: {
 	for (cl_uint j=0; j<ret_num_devices; ++j) {
-	  d.emplace_back(Device(platform, deviceIDs[j]));
+	  Device* dev = new Device(platform, deviceIDs[j]);
+	  d.emplace_back(dev->bake());
 	}
 	break;
       }
@@ -109,9 +92,14 @@ bool Device::isGPU() const {
   return type==GPU_TYPE;
 }
 
-Device Device::getGPU() {
-  const std::vector<Device> allDevices(get());
-  auto gpus(allDevices | std::views::filter([](Device d) { return d.isGPU(); }));
+ptr<Context> Device::createContext() const {
+  Context* context = new Context(ref());
+  return context->bake();
+}
+
+ptr<Device> Device::getGPU() {
+  const std::vector<ptr<Device>> allDevices(get());
+  auto gpus(allDevices | std::views::filter([](ptr<Device> d) { return d->isGPU(); }));
   auto fastest(std::minmax_element(gpus.begin(), gpus.end(), Device::speedOrdering).second);
   if (fastest == gpus.end()) throw "No GPU found";
   return *fastest;
