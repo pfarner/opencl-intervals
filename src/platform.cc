@@ -1,6 +1,4 @@
 #include "platform.h"
-#include <cassert>
-#include <string>
 
 static const int max = 16;
 

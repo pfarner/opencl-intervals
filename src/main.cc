@@ -1,9 +1,3 @@
-#include <stdio.h>
-#include <cstdlib>
-#include <time.h>
-#include <CL/cl.h>
-#include <iostream>
-#include <cassert>
 #include "kernel.h"
 #include "context.h"
 

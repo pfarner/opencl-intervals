@@ -2,10 +2,6 @@
 #define _kernel_h_
 
 #include <string>
-#include <cstdio>
-#include <cstdlib>
-#include <ctime>
-#include <CL/cl.h>
 
 using std::string;
 

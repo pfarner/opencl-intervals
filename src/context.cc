@@ -1,4 +1,3 @@
-#include <cassert>
 #include "context.h"
 
 static cl_context createContext(ptr<Device> device) {

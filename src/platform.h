@@ -4,7 +4,6 @@
 #include <CL/cl.h>
 #include <iostream>
 #include <vector>
-#include <string>
 #include "ptr.h"
 
 using std::vector;
