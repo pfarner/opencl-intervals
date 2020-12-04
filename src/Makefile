@@ -1,22 +1,27 @@
+MAKEFLAGS += -r # to match bare % instead of using implicit rule
 CXXFLAGS = -std=c++20 -g -ggdb -DCL_TARGET_OPENCL_VERSION=220
 LDFLAGS  = -lOpenCL
 CXXFILES = $(wildcard *.cc)
-HEADERS  = $(wildcard *.h)
+HEADERS  = $(wildcard *.h) $(wildcard opencl/*.h)
 OBJECTS  = $(patsubst %.cc,%.o,$(CXXFILES))
+EXECS    = $(patsubst %.cc,%,$(CXXFILES))
 SHELL    = /bin/zsh
 
-%.o:	%.cc $(HEADERS)
-	g++ -Wall $(CXXFLAGS) -c $<
-	# -Werror 
+.PHONY: opencl
 
-main:	$(OBJECTS)
-	@make test
-	g++ -Wall -Werror $(CXXFLAGS) $(LDFLAGS) $(OBJECTS) -o $@
+.PRECIOUS: $(OBJECTS)
+
+all:	$(EXECS)
+
+%.o:	%.cc opencl $(HEADERS)
+	g++ -Wall $(CXXFLAGS) -Werror  -c $<
+
+%:	%.o opencl
+	g++ -Wall -Werror $(CXXFLAGS) $(LDFLAGS) $< opencl/*.o -o $@
+
+opencl:
+	make -C opencl
 
 clean:
+	make -C opencl clean
 	rm -rf main *~(N) $(OBJECTS)
-
-test:	test-gpu
-
-test-gpu:
-	@if ! yes -- -1 | python /home/presto/git/oclInspector/inspector.py | grep -q NVIDIA; then echo NO GPU FOUND; exit 1; else echo GPU found; fi

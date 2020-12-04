@@ -1,5 +1,5 @@
-#include "kernel.h"
-#include "context.h"
+#include "opencl/kernel.h"
+#include "opencl/context.h"
 
 #define MAX_SOURCE_SIZE (0x100000)
 
