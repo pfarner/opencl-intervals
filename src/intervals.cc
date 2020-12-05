@@ -23,7 +23,7 @@ Intervals<N>& Intervals<N>::operator=(const Intervals<N>& other) {
 template<int N>
 std::ostream& operator<<(std::ostream& os, Intervals<N> intervals) {
   for (const std::array<Interval,N>& volume : *(intervals.volumes)) {
-    if (empty(volume)) continue;
+    if (! Intervals<N>::nonemptyVolume(volume)) continue;
     
     const char* prefix = "";
     double scale = 1;
@@ -50,4 +50,12 @@ bool Intervals<N>::nonempty() const {
 template<int N>
 uint Intervals<N>::size() const {
   return volumes->size();
+}
+
+template<int N>
+bool Intervals<N>::nonemptyVolume(const std::array<Interval,N>& volume) {
+  for (const Interval& interval : volume) {
+    if (interval.empty()) return false;
+  }
+  return true;
 }

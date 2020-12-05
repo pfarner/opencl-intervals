@@ -22,6 +22,8 @@ class Intervals {
   bool empty() const;
   bool nonempty() const;
   uint size() const;
+
+  static bool nonemptyVolume(const std::array<Interval,N>& volume);
 };
 
 template<int N>

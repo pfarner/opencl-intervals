@@ -33,42 +33,37 @@ Intervals<N> Subdivider<N>::subdivide(Intervals<N> input) {
   return result;
 }
 
-// static void pad(ptr<Context::Kernel> kernel, Intervals& intervals) {
-//   if (! intervals.empty()) {
-//     unsigned int size = intervals.size();
-//     unsigned int next = std::bit_ceil(size);
-//     if (next > size) {
-//       if (kernel->inferBatchSize(next) < next) {
-// 	std::cerr << "padding " << intervals.size() << " to " << next << std::endl;
-//       }
-//       intervals.volumes->resize(next);
-//     }
-//   }
-// }
-
-// static bool empty(const std::vector<Interval>& volume) {
-//   for (const Interval& interval : volume) {
-//     if (interval.empty()) return true;
-//   }
-//   return true;
-// }
-
-// static bool nonempty(const std::vector<Interval>& volume) {
-//   return ! empty(volume);
-// }
+template<int N>
+static void pad(ptr<Context::Kernel> kernel, Intervals<N>& intervals) {
+  if (! intervals.empty()) {
+    unsigned int size = intervals.size();
+    unsigned int next = std::bit_ceil(size);
+    if (next > size) {
+      if (kernel->inferBatchSize(next) < next) {
+	std::cerr << "padding " << intervals.size() << " to " << next << std::endl;
+      }
+      intervals.volumes->resize(next);
+    }
+  }
+}
 
 template<int N>
-Intervals<N> Subdivider<N>::compact(Intervals<N> input) {
-  return input;
-  // Intervals result(input.degree);
-  // std::back_insert_iterator bii(result.volumes);
+Intervals<N> Subdivider<N>::compact(Intervals<N>& input) {
+  Intervals<N> result(input.degree);
+  std::back_insert_iterator bii(*(result.volumes));
   
-  // // FIXME: this is done in the CPU, and could be on GPU using a prefix scan to choose placement
-  // // see https://documen.tician.de/pyopencl/algorithm.html
-  // std::copy_if(input.volumes->begin(), input.volumes->end(), bii, nonempty);
-  // pad(kernel, result);
+  // FIXME: this is done in the CPU, and could be on GPU using a prefix scan to choose placement
+  // see https://documen.tician.de/pyopencl/algorithm.html
+  // std::copy_if(input.volumes->begin(), input.volumes->end(), bii, [](std::array<Interval,N>& volume) {
+  //     for (const Interval& interval : volume) {
+  // 	if (interval.empty()) return false;
+  //     }
+  //     return true;
+  //   });
+  std::copy_if(input.volumes->begin(), input.volumes->end(), bii, Intervals<N>::nonemptyVolume);
+  pad(kernel, result);
 
-  // // FIXME: for consistency, should an arbitrary sort be put here?  May be necessary for progress detection
+  // FIXME: for consistency, should an arbitrary sort be put here?  May be necessary for progress detection
   
-  // return result;
+  return result;
 }

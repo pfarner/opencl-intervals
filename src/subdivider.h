@@ -17,7 +17,7 @@ class Subdivider {
   Subdivider(const Kernel& kernel);
 
   Intervals<N> subdivide(Intervals<N> ranges);
-  Intervals<N> compact(Intervals<N> ranges);
+  Intervals<N> compact(Intervals<N>& ranges);
 };
 
 #endif // _SUBDIVIDER_
