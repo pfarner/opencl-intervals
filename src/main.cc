@@ -1,8 +1,6 @@
 #include "opencl/kernel.h"
 #include "opencl/context.h"
 
-#define MAX_SOURCE_SIZE (0x100000)
-
 int main(void) {
   const string kernelSource = Kernel::read("kernel.cl");
 

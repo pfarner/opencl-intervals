@@ -16,8 +16,8 @@ all:	$(EXECS)
 %.o:	%.cc opencl $(HEADERS)
 	g++ -Wall $(CXXFLAGS) -Werror  -c $<
 
-%:	%.o opencl
-	g++ -Wall -Werror $(CXXFLAGS) $(LDFLAGS) $< opencl/*.o -o $@
+%:	%.o $(OBJECTS) opencl
+	g++ -Wall -Werror $(CXXFLAGS) $(LDFLAGS) $< opencl/*.o subdivider.o -o $@
 
 opencl:
 	make -C opencl

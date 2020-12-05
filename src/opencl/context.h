@@ -61,7 +61,8 @@ class Context : public Pointable<Context> {
     virtual ~Kernel();
     const cl_kernel kernel;
     void setArg(cl_uint index, size_t size, const void *value) const;
-    void executeNDRange(ptr<CommandQueue> queue, cl_ulong count, cl_ulong batch=64) const;
+    void executeNDRange(ptr<CommandQueue> queue, cl_ulong count) const;
+    void executeNDRange(ptr<CommandQueue> queue, cl_ulong count, cl_ulong batch) const;
     friend Program;
   };
   friend Kernel;

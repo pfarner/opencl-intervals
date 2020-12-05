@@ -118,9 +118,11 @@ ptr<Context::Kernel> Context::Program::createKernel(std::string kernel) const {
 
 
 
+static cl_ulong defaultBatchSize = 64;
+
 static cl_kernel createKern(const cl_program& program, std::string endpoint) {
   cl_int ret=CL_SUCCESS;
-  cl_kernel kernel = clCreateKernel(program, "vector_add", &ret);
+  cl_kernel kernel = clCreateKernel(program, endpoint.c_str(), &ret);
   assert(CL_SUCCESS == ret);
   return kernel;
 }
@@ -134,6 +136,19 @@ Context::Kernel::~Kernel() {
 
 void Context::Kernel::setArg(cl_uint index, size_t size, const void *value) const {
   assert(CL_SUCCESS == clSetKernelArg(kernel, index, size, value));
+}
+
+void Context::Kernel::executeNDRange(ptr<Context::CommandQueue> queue, cl_ulong count) const {
+  int batch = defaultBatchSize;
+  if (count < defaultBatchSize) {
+    batch = count;
+  } else if (count % defaultBatchSize == 0) {
+    batch = defaultBatchSize;
+  } else {
+    batch = 1;
+    std::cerr << "WARNING: default batch size " << defaultBatchSize << "does not divide count " << count << "; using batch size of " << batch << std::endl;
+  }
+  executeNDRange(queue, count, batch);
 }
 
 void Context::Kernel::executeNDRange(ptr<Context::CommandQueue> queue, cl_ulong count, cl_ulong batch) const {

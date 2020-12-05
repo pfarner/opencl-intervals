@@ -6,9 +6,9 @@
 using std::string;
 
 class Kernel {
+ public:
   const string source;
   
- public:
   Kernel(string source);
   
   virtual ~Kernel() { }
