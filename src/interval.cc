@@ -20,7 +20,7 @@ static std::ostream& operator<<(std::ostream& os, ptr<std::vector<Interval>> int
 int main(void) {
   Subdivider subdivider(Kernel::read("interval.cl"));
 
-  const int count = 64;
+  const int count = 1;
   ptr<std::vector<Interval>> input(new std::vector<Interval>());
   for(int i=0; i<count; ++i) {
     input->push_back(Interval(i/(double)count,(i+1)/(double)count));
@@ -29,6 +29,7 @@ int main(void) {
   ptr<std::vector<Interval>> subdivided = input;
 
   std::cout << std::setprecision(16);
+  std::cout << input << std::endl;
   for (int i=0; i<100; ++i) {
     //ptr<std::vector<Interval>> before = subdivided;
     //std::cout << "before:" << std::endl << &*before << std::endl << before << std::endl;
@@ -37,6 +38,7 @@ int main(void) {
     //std::cout << "after:"  << std::endl << &*subdivided << std::endl << subdivided << std::endl;
     //if (*before == *subdivided) break; // FIXME: this exits when the vectors are not equal!
     std::cout << subdivided << std::endl;
+    if (subdivided->empty()) break;
   }
 
   return 0;

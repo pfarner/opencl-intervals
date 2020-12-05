@@ -11,6 +11,7 @@ class Subdivider {
   const ptr<Context>               context;
   const ptr<Context::CommandQueue> queue;
   const ptr<Context::Program>      program;
+  const ptr<Context::Kernel>       kernel;
  public:
   Subdivider(const Kernel& kernel);
 

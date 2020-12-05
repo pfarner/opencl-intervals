@@ -5,14 +5,16 @@ Subdivider::Subdivider(const Kernel& kernel)
  :device(Device::getGPU()),
   context(device->createContext()),
   queue(context->createCommandQueue()),
-  program(context->createProgram(kernel.source)) {
+  program(context->createProgram(kernel.source)),
+  kernel(program->createKernel("interval_select")) {
 }
 
 ptr<std::vector<Interval>> Subdivider::subdivide(ptr<std::vector<Interval>> input) {
-  ptr<Context::MemoryBuffer> a_mem_obj = context->createMemoryBuffer(CL_MEM_READ_ONLY,  input->size(), sizeof(Interval));
+  if (input->empty()) return input;
+  
+  ptr<Context::MemoryBuffer> a_mem_obj = context->createMemoryBuffer(CL_MEM_READ_ONLY, input->size(), sizeof(Interval));
   ptr<Context::MemoryBuffer> r_mem_obj = context->createMemoryBuffer(CL_MEM_WRITE_ONLY, input->size(), sizeof(Interval));
   ptr<Context::MemoryBuffer> s_mem_obj = context->createMemoryBuffer(CL_MEM_WRITE_ONLY, input->size(), sizeof(Interval));
-  ptr<Context::Kernel>       kernel    = program->createKernel("interval_select");
 
   queue->writeBuffer(a_mem_obj, input->data());
 
@@ -29,12 +31,14 @@ ptr<std::vector<Interval>> Subdivider::subdivide(ptr<std::vector<Interval>> inpu
   return result;
 }
 
-static void pad(ptr<std::vector<Interval>> intervals) {
+static void pad(ptr<Context::Kernel> kernel, ptr<std::vector<Interval>> intervals) {
   if (! intervals->empty()) {
     unsigned int size = intervals->size();
     unsigned int next = std::bit_ceil(size);
     if (next > size) {
-      std::cerr << "padding " << intervals->size() << " to " << next << std::endl;
+      if (kernel->inferBatchSize(next) < next) {
+	std::cerr << "padding " << intervals->size() << " to " << next << std::endl;
+      }
       intervals->resize(next);
     }
   }
@@ -48,7 +52,7 @@ ptr<std::vector<Interval>> Subdivider::compact(ptr<std::vector<Interval>> input)
   // FIXME: this is done in the CPU, and could be on GPU using a prefix scan to choose placement
   // see https://documen.tician.de/pyopencl/algorithm.html
   std::copy_if(input->begin(), input->end(), bii, Interval::nonempty);
-  pad(result);
+  pad(kernel, result);
 
   // FIXME: for consistency, should an arbitrary sort be put here?  May be necessary for progress detection
   

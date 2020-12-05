@@ -138,14 +138,19 @@ void Context::Kernel::setArg(cl_uint index, size_t size, const void *value) cons
   assert(CL_SUCCESS == clSetKernelArg(kernel, index, size, value));
 }
 
-void Context::Kernel::executeNDRange(ptr<Context::CommandQueue> queue, cl_ulong count) const {
-  int batch = defaultBatchSize;
+cl_ulong Context::Kernel::inferBatchSize(cl_ulong count) const {
   if (count < defaultBatchSize) {
-    batch = count;
+    return count;
   } else if (count % defaultBatchSize == 0) {
-    batch = defaultBatchSize;
+    return defaultBatchSize;
   } else {
-    batch = 1;
+    return 1;
+  }
+}
+
+void Context::Kernel::executeNDRange(ptr<Context::CommandQueue> queue, cl_ulong count) const {
+  const cl_ulong batch = inferBatchSize(count);
+  if (batch == 1) {
     std::cerr << "WARNING: default batch size " << defaultBatchSize << "does not divide count " << count << "; using batch size of " << batch << std::endl;
   }
   executeNDRange(queue, count, batch);
