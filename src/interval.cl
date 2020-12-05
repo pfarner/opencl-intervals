@@ -6,7 +6,7 @@ int f(double x) {
   return (int) (x*3);
 }
 
-__kernel void interval_select(__global Interval *A, __global Interval *R, __global Interval *S) {
+__kernel void interval_select(int degree, __global Interval *A, __global Interval *R, __global Interval *S) {
   int i = get_global_id(0);
   const double min = A[i].min, max = A[i].max;
   if (f(min) != f(max)) {

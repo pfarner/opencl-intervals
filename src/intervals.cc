@@ -1,17 +1,17 @@
 #include "intervals.h"
 
 template<int N>
-Intervals<N>::Intervals(uint degree)
+Intervals<N>::Intervals(cl_int degree)
  :degree(degree), volumes(new std::vector<std::array<Interval,N>>()) { }
 
 template<int N>
-Intervals<N>::Intervals(uint degree, uint count)
+Intervals<N>::Intervals(cl_int degree, uint count)
  :degree(degree), volumes(new std::vector<std::array<Interval,N>>()) {
   volumes->resize(count);
 }
 
 template<int N>
-Intervals<N>::Intervals(uint degree, ptr<std::vector<std::array<Interval,N>>> volumes)
+Intervals<N>::Intervals(cl_int degree, ptr<std::vector<std::array<Interval,N>>> volumes)
  :degree(degree), volumes(volumes) { }
 
 template<int N>

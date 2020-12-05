@@ -10,13 +10,13 @@
 template<int N>
 class Intervals {
  public:
-  const uint degree;
+  const cl_int degree;
   // This is a collection of multidimensional rectangular prisms
   ptr<std::vector<std::array<Interval, N>>> volumes;
 
-  Intervals(uint degree);
-  Intervals(uint degree, uint count);
-  Intervals(uint degree, ptr<std::vector<std::array<Interval,N>>> volumes);
+  Intervals(cl_int degree);
+  Intervals(cl_int degree, uint count);
+  Intervals(cl_int degree, ptr<std::vector<std::array<Interval,N>>> volumes);
   Intervals<N>& operator=(const Intervals& other);
 
   bool empty() const;

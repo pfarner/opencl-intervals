@@ -20,9 +20,10 @@ Intervals<N> Subdivider<N>::subdivide(Intervals<N> input) {
 
   queue->writeBuffer(a_mem_obj, input.volumes->data());
 
-  kernel->setArg(0, sizeof(cl_mem), &a_mem_obj->buffer);
-  kernel->setArg(1, sizeof(cl_mem), &r_mem_obj->buffer);
-  kernel->setArg(2, sizeof(cl_mem), &s_mem_obj->buffer);
+  kernel->setArg(0, sizeof(cl_int), &input.degree);
+  kernel->setArg(1, sizeof(cl_mem), &a_mem_obj->buffer);
+  kernel->setArg(2, sizeof(cl_mem), &r_mem_obj->buffer);
+  kernel->setArg(3, sizeof(cl_mem), &s_mem_obj->buffer);
 
   kernel->executeNDRange(queue, input.size());
 
