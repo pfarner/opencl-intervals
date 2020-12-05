@@ -2,44 +2,49 @@
 
 template<int N>
 Intervals<N>::Intervals(cl_int degree)
- :degree(degree), volumes(new std::vector<std::array<Interval,N>>()) { }
+ :degree(degree), prisms(new std::vector<Prism<N>>()) { }
 
 template<int N>
 Intervals<N>::Intervals(cl_int degree, uint count)
- :degree(degree), volumes(new std::vector<std::array<Interval,N>>()) {
-  volumes->resize(count);
+ :degree(degree), prisms(new std::vector<Prism<N>>()) {
+  prisms->resize(count);
 }
 
 template<int N>
-Intervals<N>::Intervals(cl_int degree, ptr<std::vector<std::array<Interval,N>>> volumes)
- :degree(degree), volumes(volumes) { }
+Intervals<N>::Intervals(cl_int degree, ptr<std::vector<Prism<N>>> prisms)
+ :degree(degree), prisms(prisms) { }
 
 template<int N>
 Intervals<N>& Intervals<N>::operator=(const Intervals<N>& other) {
-  volumes = other.volumes;
+  prisms = other.prisms;
   return *this;
 }
 
 template<int N>
 std::ostream& operator<<(std::ostream& os, Intervals<N> intervals) {
-  for (const std::array<Interval,N>& volume : *(intervals.volumes)) {
-    if (! Intervals<N>::nonemptyVolume(volume)) continue;
+  double totalVolume = 0;
+  int    count       = 0;
+  for (const Prism<N>& prism : *(intervals.prisms)) {
+    if (! Intervals<N>::nonemptyPrism(prism)) continue;
     
     const char* prefix = "";
-    double scale = 1;
-    for (const Interval& interval : volume) {
+    double volume = 1;
+    for (const Interval& interval : prism) {
       os << prefix << '[' << interval.min << ',' << interval.max << ']';
       prefix = " × ";
-      scale *= interval.max-interval.min;
+      volume *= interval.max-interval.min;
     }
-    os << " (volume=" << scale << ')' << std::endl;
+    os << " (volume=" << volume << ')' << std::endl;
+    totalVolume += volume;
+    ++count;
   }
+  os << count << " prisms, total volume " << totalVolume << std::endl;
   return os;
 }
 
 template<int N>
 bool Intervals<N>::empty() const {
-  return volumes->empty();
+  return prisms->empty();
 }
 
 template<int N>
@@ -49,12 +54,12 @@ bool Intervals<N>::nonempty() const {
 
 template<int N>
 uint Intervals<N>::size() const {
-  return volumes->size();
+  return prisms->size();
 }
 
 template<int N>
-bool Intervals<N>::nonemptyVolume(const std::array<Interval,N>& volume) {
-  for (const Interval& interval : volume) {
+bool Intervals<N>::nonemptyPrism(const Prism<N>& prism) {
+  for (const Interval& interval : prism) {
     if (interval.empty()) return false;
   }
   return true;

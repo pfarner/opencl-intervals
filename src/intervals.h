@@ -8,22 +8,25 @@
 #include "opencl/ptr.h"
 
 template<int N>
+using Prism = std::array<Interval, N>;
+
+template<int N>
 class Intervals {
  public:
   const cl_int degree;
   // This is a collection of multidimensional rectangular prisms
-  ptr<std::vector<std::array<Interval, N>>> volumes;
+  ptr<std::vector<Prism<N>>> prisms;
 
   Intervals(cl_int degree);
   Intervals(cl_int degree, uint count);
-  Intervals(cl_int degree, ptr<std::vector<std::array<Interval,N>>> volumes);
+  Intervals(cl_int degree, ptr<std::vector<Prism<N>>> prisms);
   Intervals<N>& operator=(const Intervals& other);
 
   bool empty() const;
   bool nonempty() const;
   uint size() const;
 
-  static bool nonemptyVolume(const std::array<Interval,N>& volume);
+  static bool nonemptyPrism(const Prism<N>& prism);
 };
 
 template<int N>
