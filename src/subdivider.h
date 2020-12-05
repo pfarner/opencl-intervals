@@ -4,8 +4,9 @@
 #include <vector>
 #include "opencl/context.h"
 #include "opencl/kernel.h"
-#include "interval.h"
+#include "intervals.h"
 
+template<int N>
 class Subdivider {
   const ptr<Device>                device;
   const ptr<Context>               context;
@@ -15,8 +16,8 @@ class Subdivider {
  public:
   Subdivider(const Kernel& kernel);
 
-  ptr<std::vector<Interval>> subdivide(ptr<std::vector<Interval>> ranges);
-  ptr<std::vector<Interval>> compact(ptr<std::vector<Interval>> ranges);
+  Intervals<N> subdivide(Intervals<N> ranges);
+  Intervals<N> compact(Intervals<N> ranges);
 };
 
 #endif // _SUBDIVIDER_

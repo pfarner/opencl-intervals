@@ -1,7 +1,8 @@
 #include <iterator>
 #include "subdivider.h"
 
-Subdivider::Subdivider(const Kernel& kernel)
+template<int N>
+Subdivider<N>::Subdivider(const Kernel& kernel)
  :device(Device::getGPU()),
   context(device->createContext()),
   queue(context->createCommandQueue()),
@@ -9,52 +10,65 @@ Subdivider::Subdivider(const Kernel& kernel)
   kernel(program->createKernel("interval_select")) {
 }
 
-ptr<std::vector<Interval>> Subdivider::subdivide(ptr<std::vector<Interval>> input) {
-  if (input->empty()) return input;
+template<int N>
+Intervals<N> Subdivider<N>::subdivide(Intervals<N> input) {
+  if (input.empty()) return input;
   
-  ptr<Context::MemoryBuffer> a_mem_obj = context->createMemoryBuffer(CL_MEM_READ_ONLY, input->size(), sizeof(Interval));
-  ptr<Context::MemoryBuffer> r_mem_obj = context->createMemoryBuffer(CL_MEM_WRITE_ONLY, input->size(), sizeof(Interval));
-  ptr<Context::MemoryBuffer> s_mem_obj = context->createMemoryBuffer(CL_MEM_WRITE_ONLY, input->size(), sizeof(Interval));
+  ptr<Context::MemoryBuffer> a_mem_obj = context->createMemoryBuffer(CL_MEM_READ_ONLY,  input.size(), input.degree*sizeof(Interval));
+  ptr<Context::MemoryBuffer> r_mem_obj = context->createMemoryBuffer(CL_MEM_WRITE_ONLY, input.size(), input.degree*sizeof(Interval));
+  ptr<Context::MemoryBuffer> s_mem_obj = context->createMemoryBuffer(CL_MEM_WRITE_ONLY, input.size(), input.degree*sizeof(Interval));
 
-  queue->writeBuffer(a_mem_obj, input->data());
+  queue->writeBuffer(a_mem_obj, input.volumes->data());
 
   kernel->setArg(0, sizeof(cl_mem), &a_mem_obj->buffer);
   kernel->setArg(1, sizeof(cl_mem), &r_mem_obj->buffer);
   kernel->setArg(2, sizeof(cl_mem), &s_mem_obj->buffer);
 
-  kernel->executeNDRange(queue, input->size());
+  kernel->executeNDRange(queue, input.size());
 
-  ptr<std::vector<Interval>> result(new std::vector<Interval>(2*input->size()));
-  queue->readBuffer(r_mem_obj, result->data());
-  queue->readBuffer(s_mem_obj, result->data()+input->size());
+  Intervals<N> result(input.degree, 2*input.size());
+  queue->readBuffer(r_mem_obj, result.volumes->data());
+  queue->readBuffer(s_mem_obj, result.volumes->data()+input.size());
 
   return result;
 }
 
-static void pad(ptr<Context::Kernel> kernel, ptr<std::vector<Interval>> intervals) {
-  if (! intervals->empty()) {
-    unsigned int size = intervals->size();
-    unsigned int next = std::bit_ceil(size);
-    if (next > size) {
-      if (kernel->inferBatchSize(next) < next) {
-	std::cerr << "padding " << intervals->size() << " to " << next << std::endl;
-      }
-      intervals->resize(next);
-    }
-  }
-}
+// static void pad(ptr<Context::Kernel> kernel, Intervals& intervals) {
+//   if (! intervals.empty()) {
+//     unsigned int size = intervals.size();
+//     unsigned int next = std::bit_ceil(size);
+//     if (next > size) {
+//       if (kernel->inferBatchSize(next) < next) {
+// 	std::cerr << "padding " << intervals.size() << " to " << next << std::endl;
+//       }
+//       intervals.volumes->resize(next);
+//     }
+//   }
+// }
 
+// static bool empty(const std::vector<Interval>& volume) {
+//   for (const Interval& interval : volume) {
+//     if (interval.empty()) return true;
+//   }
+//   return true;
+// }
 
-ptr<std::vector<Interval>> Subdivider::compact(ptr<std::vector<Interval>> input) {
-  ptr<std::vector<Interval>> result(new std::vector<Interval>());
-  std::back_insert_iterator bii(*result);
+// static bool nonempty(const std::vector<Interval>& volume) {
+//   return ! empty(volume);
+// }
+
+template<int N>
+Intervals<N> Subdivider<N>::compact(Intervals<N> input) {
+  return input;
+  // Intervals result(input.degree);
+  // std::back_insert_iterator bii(result.volumes);
   
-  // FIXME: this is done in the CPU, and could be on GPU using a prefix scan to choose placement
-  // see https://documen.tician.de/pyopencl/algorithm.html
-  std::copy_if(input->begin(), input->end(), bii, Interval::nonempty);
-  pad(kernel, result);
+  // // FIXME: this is done in the CPU, and could be on GPU using a prefix scan to choose placement
+  // // see https://documen.tician.de/pyopencl/algorithm.html
+  // std::copy_if(input.volumes->begin(), input.volumes->end(), bii, nonempty);
+  // pad(kernel, result);
 
-  // FIXME: for consistency, should an arbitrary sort be put here?  May be necessary for progress detection
+  // // FIXME: for consistency, should an arbitrary sort be put here?  May be necessary for progress detection
   
-  return result;
+  // return result;
 }

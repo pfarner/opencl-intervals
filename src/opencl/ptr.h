@@ -3,6 +3,7 @@
 
 #include <cassert>
 #include <memory>
+#include <iostream>
 
 template <typename T>
 using ptr = std::shared_ptr<T>;

@@ -17,7 +17,7 @@ all:	$(EXECS)
 	g++ -Wall $(CXXFLAGS) -Werror  -c $<
 
 %:	%.o $(OBJECTS) opencl
-	g++ -Wall -Werror $(CXXFLAGS) $(LDFLAGS) $< opencl/*.o subdivider.o -o $@
+	g++ -Wall -Werror $(CXXFLAGS) $(LDFLAGS) $< opencl/*.o intervals.o subdivider.o -o $@
 
 opencl:
 	make -C opencl
