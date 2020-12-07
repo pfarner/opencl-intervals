@@ -1,3 +1,4 @@
+#include <boost/compute.hpp>
 #include "context.h"
 
 static cl_context createContext(ptr<Device> device) {
@@ -104,7 +105,19 @@ static cl_program createProg(const cl_context& context, std::string kernel) {
 Context::Program::Program(ptr<Context> context, std::string kernel)
  :device(context->device), program(createProg(context->context, kernel)) {
   // FIXME: no support for build options
-  assert(CL_SUCCESS == clBuildProgram(program, 1, &device->deviceID, NULL, NULL, NULL));
+  int ret = clBuildProgram(program, 1, &device->deviceID, NULL, NULL, NULL);
+  switch (ret) {
+   case CL_SUCCESS: return;
+   case CL_BUILD_PROGRAM_FAILURE: {
+     size_t size;
+     clGetProgramBuildInfo(program, device->deviceID, CL_PROGRAM_BUILD_LOG, 0, NULL, &size);
+     char log[size];
+     clGetProgramBuildInfo(program, device->deviceID, CL_PROGRAM_BUILD_LOG, size, log, NULL);
+     throw std::string(log);
+   }
+   default:
+     throw boost::compute::opencl_error::to_string(ret);
+  }
 }
 
 Context::Program::~Program() {
