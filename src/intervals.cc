@@ -2,20 +2,21 @@
 
 template<int N>
 Intervals<N>::Intervals(cl_int degree)
- :degree(degree), prisms(new std::vector<Prism<N>>()) { }
+ :phase(0), degree(degree), prisms(new std::vector<Prism<N>>()) { }
 
 template<int N>
 Intervals<N>::Intervals(cl_int degree, uint count)
- :degree(degree), prisms(new std::vector<Prism<N>>()) {
+ :phase(0), degree(degree), prisms(new std::vector<Prism<N>>()) {
   prisms->resize(count);
 }
 
 template<int N>
 Intervals<N>::Intervals(cl_int degree, ptr<std::vector<Prism<N>>> prisms)
- :degree(degree), prisms(prisms) { }
+ :phase(0), degree(degree), prisms(prisms) { }
 
 template<int N>
 Intervals<N>& Intervals<N>::operator=(const Intervals<N>& other) {
+  phase  = other.phase;
   prisms = other.prisms;
   return *this;
 }

@@ -21,15 +21,18 @@ Intervals<N> Subdivider<N>::subdivide(Intervals<N> input) {
   queue->writeBuffer(a_mem_obj, input.prisms->data());
 
   kernel->setArg(0, sizeof(cl_int), &input.degree);
-  kernel->setArg(1, sizeof(cl_mem), &a_mem_obj->buffer);
-  kernel->setArg(2, sizeof(cl_mem), &r_mem_obj->buffer);
-  kernel->setArg(3, sizeof(cl_mem), &s_mem_obj->buffer);
-
+  kernel->setArg(1, sizeof(cl_int), &input.phase);
+  kernel->setArg(2, sizeof(cl_mem), &a_mem_obj->buffer);
+  kernel->setArg(3, sizeof(cl_mem), &r_mem_obj->buffer);
+  kernel->setArg(4, sizeof(cl_mem), &s_mem_obj->buffer);
+  
   kernel->executeNDRange(queue, input.size());
-
+  
   Intervals<N> result(input.degree, 2*input.size());
   queue->readBuffer(r_mem_obj, result.prisms->data());
   queue->readBuffer(s_mem_obj, result.prisms->data()+input.size());
+
+  input.phase = (input.phase+1) % input.degree;
 
   return result;
 }

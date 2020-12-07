@@ -13,6 +13,7 @@ using Prism = std::array<Interval, N>;
 template<int N>
 class Intervals {
  public:
+  cl_int       phase;
   const cl_int degree;
   // This is a collection of multidimensional rectangular prisms
   ptr<std::vector<Prism<N>>> prisms;
