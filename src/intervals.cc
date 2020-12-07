@@ -39,7 +39,11 @@ std::ostream& operator<<(std::ostream& os, Intervals<N> intervals) {
     totalVolume += volume;
     ++count;
   }
-  os << count << " prisms, total volume " << totalVolume << std::endl;
+  os << count             << " prisms";
+  os << ", total volume " << totalVolume;
+  os << ", degree "       << intervals.degree;
+  os << ", next phase "   << intervals.phase;
+  os << std::endl;
   return os;
 }
 

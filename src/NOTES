@@ -1,0 +1,38 @@
+Looking to find solutions for (x-a)² + (y-b)² = r².
+
+Suppose x∈[x₀,x₁] and y∈[y₀,y₁].  We want to test whether r² ∈ (x-a)² + (y-b)² could be true.
+
+r² ∈ (x-a)² + (y-b)²
+
+r² ∈ ([x₀,x₁]-a)² + ([y₀,y₁]-b)²
+
+r² ∈ [x₀-a,x₁-a]² + [y₀-b,y₁-b]²
+
+If we consider 0≤x₀ and 0≤y₀ for now, then that leaves us with:
+
+r² ∈ [(x₀-a)²,(x₁-a)²] + [(y₀-b)²,(y₁-b)²]
+
+r² ∈ [(x₀-a)² + (y₀-b)², (x₁-a)² + (y₁-b)²]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Computing the inclusion function ☐f(☐x) for f(x)=x²:
+
+Suppose ☐x=[x₀,x₁].  Where is zero?
+
+If 0≤x₀, then ☐f(☐x) = [x₀²,x₁²].
+
+If x₁≤0, then ☐f(☐x) = [x₁²,x₀²].
+
+Otherwise, ☐f(☐x) = ☐f([x₀,0])∪ ☐f([0,x₁]) = [0,x₀²] ∪ [0,x₁²] = [0,max(x₀²,x₁²)]

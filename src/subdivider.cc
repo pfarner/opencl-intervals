@@ -32,7 +32,7 @@ Intervals<N> Subdivider<N>::subdivide(Intervals<N> input) {
   queue->readBuffer(r_mem_obj, result.prisms->data());
   queue->readBuffer(s_mem_obj, result.prisms->data()+input.size());
 
-  input.phase = (input.phase+1) % input.degree;
+  result.phase = (input.phase+1) % input.degree;
 
   return result;
 }
@@ -54,6 +54,7 @@ static void pad(ptr<Context::Kernel> kernel, Intervals<N>& intervals) {
 template<int N>
 Intervals<N> Subdivider<N>::compact(Intervals<N>& input) {
   Intervals<N> result(input.degree);
+  result.phase = input.phase;
   std::back_insert_iterator bii(*(result.prisms));
   
   // FIXME: this is done in the CPU, and could be on GPU using a prefix scan to choose placement
