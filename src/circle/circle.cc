@@ -3,10 +3,10 @@
 #include <iomanip>
 #include "opencl/kernel.h"
 #include "opencl/context.h"
-#include "subdivider.h"
+#include "intervals/subdivider.h"
 
-#include "intervals.cc"
-#include "subdivider.cc"
+#include "intervals/intervals.cc"
+#include "intervals/subdivider.cc"
 
 template<int N>
 void writeDemo(std::ostream& os, int iteration, const Intervals<N>& intervals) {

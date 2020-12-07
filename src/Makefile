@@ -1,27 +1,13 @@
-MAKEFLAGS += -r # to match bare % instead of using implicit rule
-CXXFLAGS = -std=c++20 -g -ggdb -DCL_TARGET_OPENCL_VERSION=220
-LDFLAGS  = -lOpenCL
-CXXFILES = $(wildcard *.cc)
-HEADERS  = $(wildcard *.h) $(wildcard opencl/*.h)
-OBJECTS  = $(patsubst %.cc,%.o,$(CXXFILES))
-EXECS    = $(patsubst %.cc,%,$(CXXFILES))
 SHELL    = /bin/zsh
 
-.PHONY: opencl
+.PHONY: all clean
 
-.PRECIOUS: $(OBJECTS)
-
-all:	$(EXECS)
-
-%.o:	%.cc opencl $(HEADERS)
-	g++ -Wall $(CXXFLAGS) -Werror  -c $<
-
-%:	%.o $(OBJECTS) opencl
-	g++ -Wall -Werror $(CXXFLAGS) $(LDFLAGS) $< opencl/*.o intervals.o subdivider.o -o $@
-
-opencl:
+all:
 	make -C opencl
+	make -C intervals
+	make -C circle
 
 clean:
-	make -C opencl clean
-	rm -rf main *~(N) $(OBJECTS)
+	make -C opencl    clean
+	make -C intervals clean
+	make -C circle    clean
