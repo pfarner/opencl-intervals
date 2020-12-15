@@ -170,6 +170,12 @@ void Context::Kernel::executeNDRange(ptr<Context::CommandQueue> queue, cl_ulong 
 }
 
 void Context::Kernel::executeNDRange(ptr<Context::CommandQueue> queue, cl_ulong count, cl_ulong batch) const {
-  assert(CL_SUCCESS == clEnqueueNDRangeKernel(queue->queue, kernel, 1, NULL, 
-					      &count, &batch, 0, NULL, NULL));
+  const int ret = clEnqueueNDRangeKernel(queue->queue, kernel, 1, NULL, &count, &batch, 0, NULL, NULL);
+  switch (ret) {
+    case CL_SUCCESS: return;
+    default: {
+      std::cerr << "executeNDRange() failed with code " << ret << std::endl;
+      throw std::string("executeNDRange() failed with code ")+std::to_string(ret);
+    }
+  }
 }

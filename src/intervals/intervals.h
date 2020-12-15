@@ -25,7 +25,8 @@ class Intervals {
 
   bool empty() const;
   bool nonempty() const;
-  uint size() const;
+  uint count() const;
+  uint capacity() const;
 
   static bool nonemptyPrism(const Prism<N>& prism);
 };

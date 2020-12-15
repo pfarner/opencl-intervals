@@ -8,6 +8,8 @@
 #include "intervals/intervals.cc"
 #include "intervals/subdivider.cc"
 
+const bool demo = false;
+
 template<int N>
 void writeDemo(std::ostream& os, int iteration, const Intervals<N>& intervals) {
   double totalVolume = 0;
@@ -60,9 +62,9 @@ int main(void) {
     os << "set output 'circle.gif~'" << std::endl;
     os << "set xrange [0:1.5]"            << std::endl;
     os << "set yrange [0:1.5]"            << std::endl;
-  
-    writeDemo(os, 0, subdivided);
-    for (int i=0; i<30; ++i) {
+
+    if (demo) writeDemo(os, 0, subdivided);
+    for (int i=0; i<100; ++i) {
       //ptr<std::vector<Interval>> before = subdivided;
       //std::cout << "before:" << std::endl << &*before << std::endl << before << std::endl;
       subdivided = subdivider.subdivide(subdivided);
@@ -70,7 +72,8 @@ int main(void) {
       //std::cout << "after:"  << std::endl << &*subdivided << std::endl << subdivided << std::endl;
       //if (*before == *subdivided) break; // FIXME: this exits when the vectors are not equal!
       //std::cout << subdivided << std::endl;
-      writeDemo(os, i+1, subdivided);
+      if (demo) writeDemo(os, i+1, subdivided);
+      std::cout << "after " << i+1 << " iterations there are " << subdivided.count() << " prisms" << std::endl;
       if (subdivided.empty()) break;
     }
     os << "system \"mv circle.gif~ circle.gif\"" << std::endl;

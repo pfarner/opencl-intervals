@@ -58,8 +58,17 @@ bool Intervals<N>::nonempty() const {
 }
 
 template<int N>
-uint Intervals<N>::size() const {
+uint Intervals<N>::capacity() const {
   return prisms->size();
+}
+
+template<int N>
+uint Intervals<N>::count() const {
+  int count=0;
+  for (auto iter = prisms->begin(), last = prisms->end(); iter != last; ++iter) {
+    if (nonemptyPrism(*iter)) ++count;
+  }
+  return count;
 }
 
 template<int N>

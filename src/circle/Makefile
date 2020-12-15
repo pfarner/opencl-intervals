@@ -16,7 +16,7 @@ all:	$(EXECS)
 %.o:	%.cc ../opencl ../intervals $(HEADERS)
 	g++ -Wall $(CXXFLAGS) -Werror  -c $<
 
-%:	%.o $(OBJECTS)
+%:	%.o $(OBJECTS) ../opencl/*.o ../intervals/*.o
 	g++ -Wall -Werror $(CXXFLAGS) $(LDFLAGS) $< ../opencl/*.o ../intervals/*.o -o $@
 
 intervals:

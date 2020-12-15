@@ -14,9 +14,9 @@ template<int N>
 Intervals<N> Subdivider<N>::subdivide(Intervals<N> input) {
   if (input.empty()) return input;
   
-  ptr<Context::MemoryBuffer> a_mem_obj = context->createMemoryBuffer(CL_MEM_READ_ONLY,  input.size(), input.degree*sizeof(Interval));
-  ptr<Context::MemoryBuffer> r_mem_obj = context->createMemoryBuffer(CL_MEM_WRITE_ONLY, input.size(), input.degree*sizeof(Interval));
-  ptr<Context::MemoryBuffer> s_mem_obj = context->createMemoryBuffer(CL_MEM_WRITE_ONLY, input.size(), input.degree*sizeof(Interval));
+  ptr<Context::MemoryBuffer> a_mem_obj = context->createMemoryBuffer(CL_MEM_READ_ONLY,  input.capacity(), input.degree*sizeof(Interval));
+  ptr<Context::MemoryBuffer> r_mem_obj = context->createMemoryBuffer(CL_MEM_WRITE_ONLY, input.capacity(), input.degree*sizeof(Interval));
+  ptr<Context::MemoryBuffer> s_mem_obj = context->createMemoryBuffer(CL_MEM_WRITE_ONLY, input.capacity(), input.degree*sizeof(Interval));
 
   queue->writeBuffer(a_mem_obj, input.prisms->data());
 
@@ -26,11 +26,11 @@ Intervals<N> Subdivider<N>::subdivide(Intervals<N> input) {
   kernel->setArg(3, sizeof(cl_mem), &r_mem_obj->buffer);
   kernel->setArg(4, sizeof(cl_mem), &s_mem_obj->buffer);
   
-  kernel->executeNDRange(queue, input.size());
+  kernel->executeNDRange(queue, input.capacity());
   
-  Intervals<N> result(input.degree, 2*input.size());
+  Intervals<N> result(input.degree, 2*input.capacity());
   queue->readBuffer(r_mem_obj, result.prisms->data());
-  queue->readBuffer(s_mem_obj, result.prisms->data()+input.size());
+  queue->readBuffer(s_mem_obj, result.prisms->data()+input.capacity());
 
   result.phase = (input.phase+1) % input.degree;
 
@@ -40,11 +40,11 @@ Intervals<N> Subdivider<N>::subdivide(Intervals<N> input) {
 template<int N>
 static void pad(ptr<Context::Kernel> kernel, Intervals<N>& intervals) {
   if (! intervals.empty()) {
-    unsigned int size = intervals.size();
+    unsigned int size = intervals.capacity();
     unsigned int next = std::bit_ceil(size);
     if (next > size) {
       if (kernel->inferBatchSize(next) < next) {
-	std::cerr << "padding " << intervals.size() << " to " << next << std::endl;
+	std::cerr << "padding " << intervals.capacity() << " to " << next << std::endl;
       }
       intervals.prisms->resize(next);
     }
