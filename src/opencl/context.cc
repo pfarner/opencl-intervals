@@ -164,7 +164,7 @@ cl_ulong Context::Kernel::inferBatchSize(cl_ulong count) const {
 void Context::Kernel::executeNDRange(ptr<Context::CommandQueue> queue, cl_ulong count) const {
   const cl_ulong batch = inferBatchSize(count);
   if (batch == 1) {
-    std::cerr << "WARNING: default batch size " << defaultBatchSize << "does not divide count " << count << "; using batch size of " << batch << std::endl;
+    std::cerr << "WARNING: default batch size " << defaultBatchSize << " does not divide count " << count << "; using batch size of " << batch << std::endl;
   }
   executeNDRange(queue, count, batch);
 }

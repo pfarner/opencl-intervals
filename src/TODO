@@ -1,0 +1,5 @@
+Pull common Makefile contents into an imported file
+
+Pull common *.cl functions (e.g. subdivision) into an imported file
+
+Fix up dependencies, clean in Makefile
