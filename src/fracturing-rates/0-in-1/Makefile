@@ -27,4 +27,5 @@ opencl:
 
 clean:
 	make -C ../../intervals clean
-	rm -rf fracture-rates-0-in-1 *~(N) $(OBJECTS)
+	make -C ../../opencl clean
+	rm -rf fracture-rates-*-in-*(*N) *~(N) $(OBJECTS) plot-*-in-*(N) *-in-*.gif(N)
