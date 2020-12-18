@@ -30,7 +30,7 @@ void writeDemo(std::ostream& os, int iteration, int iterations, const Intervals<
        << ", " << min << " to " << prism[0].max+pad << ", " << max << std::endl;
     os << "set object " << count << " back clip lw 1.0 dashtype solid fc rgb \"cyan\" fillstyle solid border lt -1" << std::endl;
   }
-  os << "set x2label \"iteration " << iteration
+  os << "set x2label \"subdividing ranges to find 0D solutions in a 1D space\\niteration " << iteration
      << ": " << count << " prisms"
      << ", covering total area of " << totalVolume
      << ", next subdivision is in " << (intervals.phase==0 ? "X" : "Y") << " direction"
@@ -59,7 +59,7 @@ int main(void) {
     std::cout << subdivided << std::endl;
     std::ofstream os("plot-0-in-1");
     os << "set samples 1000" << std::endl;
-    os << "set terminal gif animate opt delay 80 optimize enhanced font \"arial,10\" fontscale 1.0 size 1200, 1200" << std::endl;
+    os << "set terminal gif animate opt delay 40 optimize enhanced font \"arial,10\" fontscale 1.0 size 1200, 1200" << std::endl;
     os << "set output '0-in-1.gif~'" << std::endl;
     os << "set xrange [0:" << xmax << "]" << std::endl;
     os << "set yrange [-0.5:0.5]"    << std::endl;
