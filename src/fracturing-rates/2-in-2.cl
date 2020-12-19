@@ -2,9 +2,9 @@ typedef struct __attribute__ ((packed)) _st_Interval {
   double min,max;
 } Interval;
 
-// function: f(x,y) = ((x-0.3)² + (y-0.7)²) == 0.1² or y==x³
+// function: f(x,y) = ((x-0.3)² + (y-0.7)²) ≤ 0.1²
 
-bool testCircle(int degree, __global const Interval* x) {
+bool test(int degree, __global const Interval* x) {
   __global const Interval* y = x+1;
   
   // center {x,y}{0,1} on the circle's center
@@ -13,46 +13,25 @@ bool testCircle(int degree, __global const Interval* x) {
   double y0  = nextafter(y->min-cy, -1E9), y1 = nextafter(y->max-cy, 1E9);
 
   // compute x^2 and y^2 inclusion functions
-  double fx0, fx1;
+  double fx0;
   if (0<=x0) {
     fx0 = x0*x0;
-    fx1 = x1*x1;
   } else if (x1<=0) {
     fx0 = x1*x1;
-    fx1 = x0*x0;
   } else {
     fx0 = 0;
-    fx1 = max(x0*x0, x1*x1);
   }
-  double fy0, fy1;
+  double fy0;
   if (0<=y0) {
     fy0 = y0*y0;
-    fy1 = y1*y1;
   } else if (y1<=0) {
     fy0 = y1*y1;
-    fy1 = y0*y0;
   } else {
     fy0 = 0;
-    fy1 = max(y0*y0, y1*y1);
   }
-  double f0 = fx0 + fy0, f1 = fx1 + fy1, r2 = 0.1*0.1;
-  if (f1<r2) return false;
+  double f0 = fx0 + fy0, r2 = 0.1*0.1;
   if (r2<f0) return false;
   return true;
-}
-
-bool testPolynomial(int degree, __global const Interval* x) {
-  __global const Interval* y = x+1;
-  
-  double x3min = nextafter(x->min*x->min*x->min, -1E9), ymin = nextafter(y->min, -1E9);
-  double x3max = nextafter(x->max*x->max*x->max,  1E9), ymax = nextafter(y->max, -1E9);
-  if (ymax  < x3min) return false;
-  if (x3max < ymin)  return false;
-  return true;
-}
-
-bool test(int degree, __global const Interval* x) {
-  return testCircle(degree, x) || testPolynomial(degree, x);
 }
 
 // subdivides a collection of intervals in a "degree"-dimensional space into two preallocated arrays,
