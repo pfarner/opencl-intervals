@@ -27,7 +27,7 @@ opencl:
 
 plot:	$(EXECS)
 	for exec in $^; do ./$$exec; done
-	for plot in plot-*; do gnuplot $$plot; done
+	setopt extendedglob; for plot in plot-*~*~; do gnuplot $$plot; done
 
 clean:
 	make -C ../intervals clean

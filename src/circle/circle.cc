@@ -34,6 +34,9 @@ void writeDemo(std::ostream& os, int iteration, const Intervals<N>& intervals) {
      << ", next subdivision is in " << (intervals.phase==0 ? "X" : "Y") << " direction"
      << "\"" << std::endl;
   os << "plot sqrt(1-x*x) lw 3 t ''"    << std::endl;
+  for (int c=1; c<=count; ++c) {
+    os << "unset object " << c << std::endl;
+  }
 }
 
 int main(void) {

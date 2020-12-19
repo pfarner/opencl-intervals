@@ -28,11 +28,11 @@ void writeDemo(std::ostream& os, int iteration, int iterations, const Intervals<
     const double max = 0.3, min = -max, pad = 0.001;
     os << "set object " << count << " rect from " << prism[0].min-pad
        << ", " << min << " to " << prism[0].max+pad << ", " << max << std::endl;
-    os << "set object " << count << " back clip lw 1.0 dashtype solid fc rgb \"cyan\" fillstyle solid border lt -1" << std::endl;
+    os << "set object " << count << " back clip lw 3.0 dashtype solid fc rgb \"cyan\" fillstyle solid border lt -1" << std::endl;
   }
   os << "set x2label \"subdividing ranges to find 1D solutions in a 1D space\\niteration " << iteration
      << ": " << count << " prisms"
-     << ", covering total area of " << totalVolume
+     << ", covering total length of " << totalVolume
      << ", next subdivision is in " << (intervals.phase==0 ? "X" : "Y") << " direction"
      << "\"" << std::endl;
   os << "plot '-' u 1:2 w lp lw 3 pt 13 t ''"    << std::endl;
@@ -42,6 +42,9 @@ void writeDemo(std::ostream& os, int iteration, int iterations, const Intervals<
   os << 0.6 << " " << 0 << std::endl;
   os << 0.8 << " " << 0 << std::endl;
   os << "EOF" << std::endl;
+  for (int c=1; c<=count; ++c) {
+    os << "unset object " << c << std::endl;
+  }
 }
 
 int main(void) {
