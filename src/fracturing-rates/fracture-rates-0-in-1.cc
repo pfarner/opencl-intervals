@@ -69,7 +69,7 @@ int main(void) {
     os << "set grid x y"             << std::endl;
 
     if (demo) writeDemo(os, 0, 0, subdivided);
-    for (int i=0, n=100; i<n; ++i) {
+    for (int i=0, n=20; i<n; ++i) {
       //ptr<std::vector<Interval>> before = subdivided;
       //std::cout << "before:" << std::endl << &*before << std::endl << before << std::endl;
       subdivided = subdivider.subdivide(subdivided);

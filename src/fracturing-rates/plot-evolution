@@ -1,0 +1,51 @@
+#!/bin/zsh
+
+cd $0:h || exit 1
+
+rm -rf evolution
+mkdir evolution
+for f in plot-?-in-?; do
+  grep subdividing $f | perl -pe 's|.*iteration ||;s|: |\t|;s| prisms, .*of |\t|;s|,.*||' > ${f/plot-/evolution\/}
+done
+
+(
+cd evolution
+
+gnuplot <<EOF
+set terminal dumb size 150,50
+set logscale y
+set grid x y
+set xlabel 'iterations'
+set ylabel 'remaining prisms in potential solution'
+set key top left box
+plot [0:20] [] \
+  '0-in-1' w lp lw 3 pt 13,\
+  '0-in-2' w lp lw 3 pt 13,\
+  '1-in-1' w lp lw 3 pt 13,\
+  '1-in-2' w lp lw 3 pt 13,\
+  '2-in-2' w lp lw 3 pt 13
+set terminal png enhanced size 1200,1200
+set output '../evolution-prism-count.png'
+replot
+EOF
+
+gnuplot <<EOF
+set terminal dumb size 150,50
+set logscale y
+set grid x y
+set xlabel 'iterations'
+set ylabel 'remaining volume in potential solution'
+set key bottom left box
+plot [0:20] [] \
+  '0-in-1' u 1:3 w lp lw 3 pt 13,\
+  '0-in-2' u 1:3 w lp lw 3 pt 13,\
+  '1-in-1' u 1:3 w lp lw 3 pt 13,\
+  '1-in-2' u 1:3 w lp lw 3 pt 13,\
+  '2-in-2' u 1:3 w lp lw 3 pt 13
+set terminal png enhanced size 1200,1200
+set output '../evolution-prism-volume.png'
+replot
+EOF
+)
+
+rm -rf evolution
