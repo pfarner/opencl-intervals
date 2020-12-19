@@ -30,7 +30,7 @@ void writeDemo(std::ostream& os, int iteration, int iterations, const Intervals<
        << ", " << prism[1].min-pad << " to " << prism[0].max+pad << ", " << prism[1].max+pad << std::endl;
     os << "set object " << count << " back clip lw 3.0 dashtype solid fc rgb \"cyan\" fillstyle solid border lt -1" << std::endl;
   }
-  os << "set x2label \"subdividing ranges to find 0D solutions in a 1D space\\niteration " << iteration
+  os << "set x2label \"subdividing ranges to find 0D solutions in a 2D space: x*3==int(x*3) and y*5==int(y*5) and y≤x\\niteration " << iteration
      << ": " << count << " prisms"
      << ", covering total area of " << totalVolume
      << ", next subdivision is in " << (intervals.phase==0 ? "X" : "Y") << " direction"
@@ -52,7 +52,7 @@ int main(void) {
     Subdivider<2> subdivider(Kernel::read("0-in-2.cl"));
 
     const int    count = 1;
-    const double max   = 1.024;
+    const double max   = 1.5;
     ptr<std::vector<Prism<2>>> input(new std::vector<Prism<2>>());
     for(int i=0; i<count; ++i) {
       for(int j=0; j<count; ++j) {
@@ -69,7 +69,7 @@ int main(void) {
     std::cout << subdivided << std::endl;
     std::ofstream os("plot-0-in-2");
     os << "set samples 1000" << std::endl;
-    os << "set terminal gif animate opt delay 50 optimize enhanced font \"arial,10\" fontscale 1.0 size 1200, 1200" << std::endl;
+    os << "set terminal gif animate opt delay 40 optimize enhanced font \"arial,10\" fontscale 1.0 size 1200, 1200" << std::endl;
     os << "set output '0-in-2.gif~'" << std::endl;
     os << "set xrange [0:" << xmax << "]" << std::endl;
     os << "set yrange [0:1.5]"    << std::endl;

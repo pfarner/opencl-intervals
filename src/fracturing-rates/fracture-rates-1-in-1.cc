@@ -30,7 +30,7 @@ void writeDemo(std::ostream& os, int iteration, int iterations, const Intervals<
        << ", " << min << " to " << prism[0].max+pad << ", " << max << std::endl;
     os << "set object " << count << " back clip lw 3.0 dashtype solid fc rgb \"cyan\" fillstyle solid border lt -1" << std::endl;
   }
-  os << "set x2label \"subdividing ranges to find 1D solutions in a 1D space\\niteration " << iteration
+  os << "set x2label \"subdividing ranges to find 1D solutions in a 1D space: 0.2≤x≤0.4 or 0.6≤x≤0.8\\niteration " << iteration
      << ": " << count << " prisms"
      << ", covering total length of " << totalVolume
      << ", next subdivision is in " << (intervals.phase==0 ? "X" : "Y") << " direction"
